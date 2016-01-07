@@ -20,9 +20,37 @@ class Header:
         return self._status
     def key(self):
         return self._key
-    def save(self):
-        self.object.SharedObject_create_hdr(self.key, self.status)
+    def Key(self, key):
+        self._key = key
+    def commit(self):
+        hdr = self.object.SharedObject_create_hdr(self._key, self._status)
+        self.object.sem.acquire()
+        self.object.data.write(hdr, self.shift)
+        self.object.sem.release()
+    def available(self):
+        self._status = BLOCK_AVAILABLE
+    def not_available(self):
+        self._status = BLOCK_NOT_AVAILABLE
+    def remove(self):
+        self.not_available()
+        self.commit()
 
+class Data:
+    def value(self):
+        return self._data
+    def set(self, data, key=None):
+        self._data = data
+        _d_buf = self.object.SharedObject_create_data(data)
+        h = self.object.Header(self.n)
+        if key:
+            h.Key(key)
+        h.not_available()
+        h.commit()
+        self.object.sem.acquire()
+        self.object.data.write(_d_buf, self.shift)
+        self.object.sem.release()
+    def commit(self):
+        self.set(self._data)
 
 class SharedObject(Object):
     def __init__(self, key, **argv):
@@ -36,10 +64,12 @@ class SharedObject(Object):
         except sysv_ipc.ExistentialError:
             self.create()
     def calc_len(self):
-        self.hdr1_len   = len(struct.pack("BfBL",HEADER_SIG, 0.0, 0, 0))
-        self.hdr_len    = self.hdr1_len*self.max_elements
-        self.data1_len  = len(struct.pack("BL",DATA_SIG, 0))+self.max_element_size
-        self.data_len   = self.data1_len*self.max_elements
+        self.hdr1_len   = len(struct.pack("!BfBL",HEADER_SIG, 0.0, 0, 0))
+        self.hdr2_len   = self.hdr1_len + self.max_key_length
+        self.hdr_len    = self.hdr2_len*self.max_elements
+        self.data1_len  = len(struct.pack("!BL",DATA_SIG, 0))
+        self.data2_len  = self.data1_len + self.max_element_size
+        self.data_len   = self.data2_len*self.max_elements
     def create(self):
         self.Object__set_attr("max_elements", self.argv)
         self.Object__set_attr("max_element_size", self.argv)
@@ -47,7 +77,6 @@ class SharedObject(Object):
         self.calc_len()
         try:
             self.sem = sysv_ipc.Semaphore(self.key, sysv_ipc.IPC_CREAT)
-            print self.sem
             self.data = sysv_ipc.SharedMemory(self.key, size=self.hdr_len+self.data_len, flags=sysv_ipc.IPC_CREAT)
             self.sem.release()
         except KeyboardInterrupt:
@@ -61,52 +90,74 @@ class SharedObject(Object):
         return buf
     def __create_hdr(self, key, status=BLOCK_AVAILABLE):
         buf = self.__pack(key, self.max_key_length)
-        print "HDR",repr(buf),len(buf)
-        return struct.pack("BfBL", HEADER_SIG,time.time(),status,len(buf))+buf
+        return struct.pack("!BfBL", HEADER_SIG,time.time(),status,len(buf))+buf.ljust(self.max_key_length, '\0')
     SharedObject_create_hdr = __create_hdr
     def __create_data(self, data):
         buf = self.__pack(data, self.max_element_size)
-        return struct.pack("BL",DATA_SIG,len(buf))+buf
+        return struct.pack("!BL",DATA_SIG,len(buf))+buf.ljust(self.max_element_size, '\0')
+    SharedObject_create_data = __create_data
     def __init_buffer(self):
         self.sem.acquire()
         for c in range(self.max_elements):
-            shift = c*self.hdr1_len
+            shift = c*self.hdr2_len
             hdr = self.__create_hdr("")
             self.data.write(hdr, shift)
-            print "MMM",repr(self.data.read(self.hdr1_len+3,shift))
         for c in range(self.max_elements):
-            shift = self.hdr_len + (c*self.data1_len)
+            shift = self.hdr_len + (c*self.data2_len)
             data = self.__create_data(None)
             self.data.write(data, shift)
         self.sem.release()
-    def header(self, n):
+    def Header(self, n):
         shift   = n*(self.hdr1_len+self.max_key_length)
         hdr     = self.data.read(self.hdr1_len, shift)
-        print "DDD",repr(self.data.read(self.hdr1_len+3,shift))
-        _t, _s, _st, _kl = struct.unpack("BfBL", hdr)
-        print "AAA",_t, _s, _st, _kl
-        print "st",_st,repr(self.data.read(256, 0))
+        _t, _s, _st, _kl = struct.unpack("!BfBL", hdr)
         _hkey = self.data.read(_kl, shift+self.hdr1_len)
-        print repr(_hkey)
         if _t != HEADER_SIG:
-            raise ValueError, "Header with index %d isn't a header"%n
+            raise ValueError, "Header with index %d isn't a header (%d)"%(n, _t)
         h = Header()
-        setattr(h, "stamp", _s)
-        setattr(h, "status", _st)
-        setattr(h, "key", msgpack.unpackb(_hkey))
+        setattr(h, "_stamp", _s)
+        setattr(h, "_status", _st)
+        setattr(h, "_key", msgpack.unpackb(_hkey))
         setattr(h, "object", self)
         setattr(h, "shift", shift)
+        setattr(h, "n", n)
         return h
+    def Data(self, n):
+        shift   = self.hdr_len + (n*self.data2_len)
+        _d_buf = self.data.read(self.data1_len, shift)
+        _d_sig, _d_len = struct.unpack("!BL",_d_buf)
+        if _d_sig != DATA_SIG:
+            raise ValueError, "Data with index %d isn't a data block (%d)"%(n, _d_sig)
+        _d = self.data.read(_d_len, shift+self.data1_len)
+        d = Data()
+        setattr(d, "_data", msgpack.unpackb(_d))
+        setattr(d, "object", self)
+        setattr(d, "shift", shift)
+        setattr(d, "n", n)
+        return d
+    def Status(self):
+        out = []
+        for c in range(self.max_elements):
+            h = self.Header(c)
+            out.append(h.status())
+        return out
     def __del__(self):
         self.sem.release()
         self.data.remove()
         self.sem.remove()
 
 if __name__ == '__main__':
-    s = SharedObject(1)
-    h = s.header(0)
-    print h.stamp,h.status,h.key
-    del h
+    s = SharedObject(1, max_elements=10)
+    print s.Status()
+    for i in range(10):
+        d = s.Data(i)
+        d.set(str(i), "key:"+str(i))
+    for i in range(10):
+        h = s.Header(i)
+        print h.key(),
+        d = s.Data(i)
+        print repr(d.value())
+    print s.Status()
     del s
 
 
