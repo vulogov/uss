@@ -31,6 +31,8 @@ class Header:
         self._status = BLOCK_AVAILABLE
     def not_available(self):
         self._status = BLOCK_NOT_AVAILABLE
+    def Data(self):
+        return self.data.Data(self.n)
     def remove(self):
         self.not_available()
         self.commit()
@@ -49,6 +51,8 @@ class Data:
         self.object.sem.acquire()
         self.object.data.write(_d_buf, self.shift)
         self.object.sem.release()
+    def Header(self):
+        return self.data.Header(self.n)
     def commit(self):
         self.set(self._data)
 
@@ -61,9 +65,15 @@ class SharedObject(Object):
         self.max_key_length = 128
         try:
             self.sem = sysv_ipc.Semaphore(key)
+            self.calc_len()
+            self.data = sysv_ipc.SharedMemory(self.key, size=self.hdr_len+self.data_len, flags=sysv_ipc.IPC_CREAT)
+            self.is_new = False
         except sysv_ipc.ExistentialError:
             self.create()
     def calc_len(self):
+        self.Object__set_attr("max_elements", self.argv)
+        self.Object__set_attr("max_element_size", self.argv)
+        self.Object__set_attr("max_key_length", self.argv)
         self.hdr1_len   = len(struct.pack("!BfBL",HEADER_SIG, 0.0, 0, 0))
         self.hdr2_len   = self.hdr1_len + self.max_key_length
         self.hdr_len    = self.hdr2_len*self.max_elements
@@ -71,9 +81,7 @@ class SharedObject(Object):
         self.data2_len  = self.data1_len + self.max_element_size
         self.data_len   = self.data2_len*self.max_elements
     def create(self):
-        self.Object__set_attr("max_elements", self.argv)
-        self.Object__set_attr("max_element_size", self.argv)
-        self.Object__set_attr("max_key_length", self.argv)
+        self.is_new = True
         self.calc_len()
         try:
             self.sem = sysv_ipc.Semaphore(self.key, sysv_ipc.IPC_CREAT)
@@ -141,24 +149,43 @@ class SharedObject(Object):
             h = self.Header(c)
             out.append(h.status())
         return out
-    def __del__(self):
+    def Available(self):
+        status = self.Status()
+        try:
+            ix = status.index(BLOCK_AVAILABLE)
+            return self.Data(ix)
+        except:
+            return None
+    def close(self):
         self.sem.release()
         self.data.remove()
         self.sem.remove()
 
 if __name__ == '__main__':
-    s = SharedObject(1, max_elements=10)
+    s = SharedObject(0x1, max_elements=10)
     print s.Status()
-    for i in range(10):
-        d = s.Data(i)
-        d.set(str(i), "key:"+str(i))
+    #for i in range(10):
+    #    d = s.Data(i)
+    #   d.set(str(i), "key:"+str(i))
+    if s.is_new:
+        i=0
+        while True:
+            d = s.Available()
+            if not d:
+                break
+            d.set(str(i), "key:"+str(i))
+            i += 1
     for i in range(10):
         h = s.Header(i)
         print h.key(),
         d = s.Data(i)
         print repr(d.value())
     print s.Status()
-    del s
+    if s.is_new:
+        time.sleep(60)
+        s.close()
+        print "DELETE"
+
 
 
 
