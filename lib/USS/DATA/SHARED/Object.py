@@ -22,17 +22,19 @@ class Header:
         return self._key
     def Key(self, key):
         self._key = key
-    def commit(self):
+    def commit(self, lock=True):
         hdr = self.object.SharedObject_create_hdr(self._key, self._status)
-        self.object.sem.acquire()
+        if lock:
+            self.object.sem.acquire()
         self.object.data.write(hdr, self.shift)
-        self.object.sem.release()
+        if lock:
+            self.object.sem.release()
     def available(self):
         self._status = BLOCK_AVAILABLE
     def not_available(self):
         self._status = BLOCK_NOT_AVAILABLE
     def Data(self):
-        return self.data.Data(self.n)
+        return self.object.Data(self.n)
     def remove(self):
         self.not_available()
         self.commit()
@@ -40,19 +42,24 @@ class Header:
 class Data:
     def value(self):
         return self._data
-    def set(self, data, key=None):
+    def set(self, data, key=None, **argv):
+        _lock = True
+        if argv.has_key("lock") and argv["lock"]:
+            _lock = argv["lock"]
+        if _lock:
+            self.object.sem.acquire()
         self._data = data
         _d_buf = self.object.SharedObject_create_data(data)
         h = self.object.Header(self.n)
         if key:
             h.Key(key)
         h.not_available()
-        h.commit()
-        self.object.sem.acquire()
+        h.commit(False)
         self.object.data.write(_d_buf, self.shift)
-        self.object.sem.release()
+        if _lock:
+            self.object.sem.release()
     def Header(self):
-        return self.data.Header(self.n)
+        return self.object.Header(self.n)
     def commit(self):
         self.set(self._data)
 
@@ -70,6 +77,7 @@ class SharedObject(Object):
             self.is_new = False
         except sysv_ipc.ExistentialError:
             self.create()
+        print self.data.key
     def calc_len(self):
         self.Object__set_attr("max_elements", self.argv)
         self.Object__set_attr("max_element_size", self.argv)
@@ -150,11 +158,18 @@ class SharedObject(Object):
             out.append(h.status())
         return out
     def Available(self):
+        self.sem.acquire()
         status = self.Status()
         try:
             ix = status.index(BLOCK_AVAILABLE)
-            return self.Data(ix)
+            d = self.Data(ix)
+            h = d.Header()
+            h.not_available()
+            h.commit(False)
+            self.sem.release()
+            return d
         except:
+            self.sem.release()
             return None
     def close(self):
         self.sem.release()
@@ -162,31 +177,14 @@ class SharedObject(Object):
         self.sem.remove()
 
 if __name__ == '__main__':
-    s = SharedObject(0x1, max_elements=10)
+    s = SharedObject(1, max_elements=10)
+    while True:
+        d = s.Available()
+        if not d:
+            break
+        d.set("a", "key")
     print s.Status()
-    #for i in range(10):
-    #    d = s.Data(i)
-    #   d.set(str(i), "key:"+str(i))
-    if s.is_new:
-        i=0
-        while True:
-            d = s.Available()
-            if not d:
-                break
-            d.set(str(i), "key:"+str(i))
-            i += 1
-    for i in range(10):
-        h = s.Header(i)
-        print h.key(),
-        d = s.Data(i)
-        print repr(d.value())
-    print s.Status()
-    if s.is_new:
-        time.sleep(60)
-        s.close()
-        print "DELETE"
-
-
-
+    time.sleep(10)
+    s.close()
 
 

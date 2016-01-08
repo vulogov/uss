@@ -22,3 +22,13 @@ uss.egg-info/requires.txt
 uss.egg-info/SOURCES.txt
 
 uss.egg-info/top_level.txt
+
+build/lib/USS/CLIPS/__init__.py
+
+build/lib/USS/CLIPS/CLIPS.py
+
+build/lib/USS/DATA/SHARED/Object.py
+
+build/lib/USS/DATA/SHARED/Object.py
+
+build/lib/USS/DATA/SHARED/Object.py
