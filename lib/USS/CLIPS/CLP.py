@@ -3,8 +3,9 @@ __version__ = 'v0.1.0'
 
 import clips
 from USS.DATA.Object import Object
+from LOADER import LOADER
 
-class CLIPS(Object):
+class CLIPS(Object, LOADER):
     def __init__(self, **argv):
         self.argv = argv
         self.clips = clips.Environment()
@@ -15,7 +16,7 @@ class CLIPS(Object):
         self.clips.Reset()
     def current(self):
         self.clips.SetCurrent()
-    def load(self, fname):
+    def _load(self, fun, args):
         self.clips.Load(fname)
     def facts(self, fname):
         self.clips.LoadFacts(fname)

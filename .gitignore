@@ -1,3 +1,8 @@
+build/*
+
+lib/uss.egg-info/*
+
+uss.egg-info/*
 
 build/lib/USS/__init__.py
 
@@ -32,3 +37,21 @@ build/lib/USS/DATA/SHARED/Object.py
 build/lib/USS/DATA/SHARED/Object.py
 
 build/lib/USS/DATA/SHARED/Object.py
+
+build/lib/USS/DATA/SHARED/Object.py
+
+build/lib/USS/DATA/SHARED/Object.py
+
+build/lib/USS/CLIPS/CLP.py
+
+build/lib/USS/CLIPS/FACT.py
+
+build/lib/USS/CLIPS/LOADER.py
+
+build/lib/USS/DATA/SHARED/Manager.py
+
+build/lib/USS/DATA/SHARED/Object.py
+
+build/lib/USS/ENV/__init__.py
+
+build/lib/USS/ENV/FS.py
