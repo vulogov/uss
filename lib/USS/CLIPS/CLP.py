@@ -4,8 +4,10 @@ __version__ = 'v0.1.0'
 import clips
 from USS.DATA.Object import Object
 from LOADER import LOADER
+from FACT import FACT
+from CLPEXEC import CLPEXEC
 
-class CLIPS(Object, LOADER):
+class CLP(Object, LOADER, FACT, CLPEXEC):
     def __init__(self, **argv):
         self.argv = argv
         self.clips = clips.Environment()
@@ -16,16 +18,11 @@ class CLIPS(Object, LOADER):
         self.clips.Reset()
     def current(self):
         self.clips.SetCurrent()
-    def _load(self, fun, args):
-        self.clips.Load(fname)
-    def facts(self, fname):
-        self.clips.LoadFacts(fname)
-    def return_facts(self, **argv):
-        pass
+
 
 
 if __name__ == '__main__':
-    c = CLIPS()
+    c = CLP()
     c.load("../../../etc/clips/ini/shared.clp")
     c.facts("../../../etc/cfg/shared.clp")
     c.clips.PrintFacts()

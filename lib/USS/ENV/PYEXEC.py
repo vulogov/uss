@@ -23,3 +23,18 @@ class PYEXEC:
             return apply(fun, args, kw)
         except:
             raise ValueError, "Error in %s.%s"%(_mod, _fun)
+    def execute(self, _fun, *args, **kw):
+        out = {}
+        for p in self.mods.keys():
+            for m in self.mods[p].keys():
+                mod = self.mods[p][m]
+                try:
+                    fun = getattr(mod, _fun)
+                except:
+                    continue
+                try:
+                    ret = apply(fun, args, kw)
+                    out[m] = ret
+                except:
+                    continue
+        return out

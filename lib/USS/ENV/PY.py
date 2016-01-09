@@ -9,7 +9,9 @@ from USS.DATA.Object import Object
 class PY(Object, PYLOADER, PYEXEC):
     def __init__(self, *path):
         self.path = []
+        print repr(path)
         for d in list(path):
+            print repr(d)
             if check_directory(d):
                 self.path.append(d)
         PYLOADER.__init__(self)
@@ -27,3 +29,4 @@ class PY(Object, PYLOADER, PYEXEC):
 if __name__ == '__main__':
     p = PY("../../../etc/ini/py")
     print p("dummy.main")
+    print p.execute("main")
