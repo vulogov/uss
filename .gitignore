@@ -55,3 +55,13 @@ build/lib/USS/DATA/SHARED/Object.py
 build/lib/USS/ENV/__init__.py
 
 build/lib/USS/ENV/FS.py
+
+.idea/misc.xml
+
+.idea/modules.xml
+
+.idea/uss.iml
+
+.idea/vcs.xml
+
+.idea/workspace.xml
