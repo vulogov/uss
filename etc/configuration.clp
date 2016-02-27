@@ -11,11 +11,19 @@
 ;;
 ;; Modules setup
 ;;
-(py_module
+(pcbind
     (name "Main PYCLP bindings")
     (path "/root/SHARED/Src/uss/etc/bind")
 )
 (py_module
     (name "Main PY modules")
     (path "/root/SHARED/Src/uss/etc/ini/py")
+)
+
+;;
+;; Startup
+;;
+(start
+    (name "dummy.main")
+    (desc "Dummy startup code")
 )

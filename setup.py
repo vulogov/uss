@@ -32,6 +32,7 @@ setup(
         "redis >= 2.0.0",
         "simplejson >= 2.0.9",
         "pyclips >= 1.0.7",
-        "sysv_ipc >= 0.6.8"
+        "sysv_ipc >= 0.6.8",
+        "pyzabbix"
     ]
     )
