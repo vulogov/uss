@@ -22,7 +22,7 @@ def check_file_read(fname):
 def check_module(fname):
     if not check_file_read(fname):
         return False
-    if os.path.getsize() > 0:
+    if os.path.getsize(fname) > 0:
         return True
     return False
 

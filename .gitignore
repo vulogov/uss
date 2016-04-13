@@ -65,3 +65,5 @@ build/lib/USS/ENV/FS.py
 .idea/vcs.xml
 
 .idea/workspace.xml
+
+*.pyc

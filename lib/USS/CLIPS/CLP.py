@@ -23,8 +23,9 @@ class CLP(Object, LOADER, FACT, CLPEXEC):
 
 if __name__ == '__main__':
     c = CLP()
-    c.load("../../../etc/clips/ini/shared.clp")
-    c.facts("../../../etc/cfg/shared.clp")
+    c.load(file="../../../etc/bootstrap.clp")
+    print 1
+    c.facts("/root/SRC/uss/etc/configuration.clp")
     c.clips.PrintFacts()
     print dir(c.clips)
     fl = c.clips.FactList()

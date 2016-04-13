@@ -20,7 +20,7 @@
     ; Application POC
     (slot poc
         (type STRING)
-        (default Administrator)
+        (default "Administrator")
     )
     ; POC e-mail
     (slot email
@@ -43,7 +43,7 @@
     )
     (slot path
         (type STRING)
-        (default ?DERVIVE)
+        (default ?DERIVE)
 
     )
 )
@@ -57,7 +57,7 @@
     )
     (slot path
         (type STRING)
-        (default ?DERVIVE)
+        (default ?DERIVE)
 
     )
 )
@@ -68,6 +68,10 @@
     (slot name
         (type STRING)
         (default ?DERIVE)
+    )
+    (slot path
+        (type STRING)
+        (default "./")
     )
     (slot desc
         (type STRING)

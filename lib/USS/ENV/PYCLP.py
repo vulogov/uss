@@ -10,7 +10,7 @@ class PYCLP(PY,CLP):
         self.argv = argv
         self.path = []
         self.Object__set_attr("path", self.argv)
-        apply(PY.__init__, tuple([self,] + self.path))
+        apply(PY.__init__, tuple([self,] + [self.path,]))
         apply(CLP.__init__, (self,), argv)
     def load_pyclp_module(self, name):
         import fnmatch
