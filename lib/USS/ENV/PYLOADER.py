@@ -22,7 +22,7 @@ class PYLOADER:
             return []
         out = []
         for f in dir(_mod):
-            if type(getattr(_mod, f)) != type.FunctionType:
+            if type(getattr(_mod, f)) != types.FunctionType:
                 continue
             out.append(f)
         return out

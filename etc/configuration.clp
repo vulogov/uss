@@ -17,7 +17,7 @@
 )
 (py_module
     (name "Main PY modules")
-    (path "/root/SHARED/Src/uss/etc/ini/py")
+    (path "/root/SRC/uss/etc/ini/py/")
 )
 
 ;;
