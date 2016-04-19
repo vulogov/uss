@@ -3,7 +3,6 @@ __version__ = 'v0.1.0'
 
 import sys
 from PYCLP import PYCLP
-from PY import PY
 
 class ENV(PYCLP):
     def __init__(self, **argv):
@@ -36,12 +35,12 @@ def main(*args):
         env.load(file="%s/bootstrap.clp"%path)
         env.facts("%s/configuration.clp"%path)
         env.clips.Run()
-        p = PY()
+        #p = PYCLP(path=[])
         for m in  env.filter(relation="py_module"):
-            p += m.Slots["path"]
-        p.reload_mods()
+            env += m.Slots["path"]
+        env.reload_mods()
         for m in env.filter(relation="start"):
-            p(m.Slots["name"], env)
+            env(m.Slots["name"], env)
     except KeyboardInterrupt:
         return None
     return env

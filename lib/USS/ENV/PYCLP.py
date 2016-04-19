@@ -33,7 +33,7 @@ class PYCLP(PY,CLP):
         return c
 
 if __name__ == '__main__':
-    pc = PYCLP(path=["../../../etc/bind"])
+    pc = PYCLP(path=["../../../etc/bind",])
     pc.load_pyclp_module("match")
     print pc.clips.Eval('(filename_match "test.txt" "*.txt")')
     exp = '(re_match "vfs.fs.size[/,pfree]" "vfs.fs.size\\\\[(.?),pfree\\\\]")'
