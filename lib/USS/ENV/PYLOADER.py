@@ -31,8 +31,12 @@ class PYLOADER:
             if self.mods[p].has_key(mod_name):
                 return self.mods[p][mod_name]
         return None
-    def reload_mods(self):
-        for p in self.path:
+    def reload_mods(self, path=None):
+        if not path:
+            _path = self.path
+        else:
+            _path = path
+        for p in _path:
             if not self.mods.has_key(p):
                 self.mods[p] = {}
             dir = get_dir_content(p)
@@ -43,7 +47,6 @@ class PYLOADER:
                     continue
                 try:
                     _mod = imp.load_source(modname, full_path)
-
                 except:
                     continue
                 self.mods[p][modname] = _mod

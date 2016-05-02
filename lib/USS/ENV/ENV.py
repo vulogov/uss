@@ -35,7 +35,6 @@ def main(*args):
         env.load(file="%s/bootstrap.clp"%path)
         env.facts("%s/configuration.clp"%path)
         env.clips.Run()
-        #p = PYCLP(path=[])
         for m in  env.filter(relation="py_module"):
             env += m.Slots["path"]
         env.reload_mods()

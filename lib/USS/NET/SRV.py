@@ -9,7 +9,6 @@ from multiprocessing.reduction import reduce_handle
 from USS.ENV.ENV import main
 
 env = main("../../../etc")
-env.clips.PrintFacts()
 
 class TCP_SERVER:
     def __init__(self):

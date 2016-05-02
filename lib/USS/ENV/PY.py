@@ -9,9 +9,8 @@ from USS.DATA.Object import Object
 class PY(Object, PYLOADER, PYEXEC):
     def __init__(self, *path):
         self.path = []
-        #path = path[0]
+        print path
         for d in list(path):
-            print repr(d)
             if check_directory(d):
                 self.path.append(d)
         PYLOADER.__init__(self)

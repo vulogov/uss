@@ -17,7 +17,7 @@ class PYCLP(PY,CLP):
         from USS.DATA.MISC.STR import rchop
         mod = self.find_the_mod(name)
         if mod == None:
-            raise ValueError, "PYCLP moduylr %s not found"%name
+            raise ValueError, "PYCLP modulе %s not found"%name
         c = 0
         for e in dir(mod):
             if fnmatch.fnmatch(e, "*_clips"):
@@ -27,13 +27,13 @@ class PYCLP(PY,CLP):
                 except:
                     continue
                 clips.RegisterPythonFunction(fun)
-                print getattr(mod, e)
+                #print getattr(mod, e)
                 self.clips.Build(getattr(mod, e))
                 c += 1
         return c
 
 if __name__ == '__main__':
-    pc = PYCLP(path=["../../../etc/bind",])
+    pc = PYCLP(path="../../../etc/bind")
     pc.load_pyclp_module("match")
     print pc.clips.Eval('(filename_match "test.txt" "*.txt")')
     exp = '(re_match "vfs.fs.size[/,pfree]" "vfs.fs.size\\\\[(.?),pfree\\\\]")'

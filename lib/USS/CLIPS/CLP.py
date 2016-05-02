@@ -12,7 +12,6 @@ class CLP(Object, LOADER, FACT, CLPEXEC):
         self.argv = argv
         self.clips = clips.Environment()
         self.clear()
-        self.clips.PrintFacts()
     def clear(self):
         self.clips.Clear()
         self.clips.Reset()
